@@ -1,0 +1,212 @@
+<style>
+  #animateBtn {
+    height: 1.6rem;
+    line-height: 1.6rem;
+    width: max-content;
+    padding: .256rem 1.5rem;
+    box-shadow: 0 0 16px rgba(0, 0, 0, .2);
+    cursor: pointer;
+    margin: 2rem auto;
+    display: block;
+  }
+</style>
+<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.141.0/build/three.module.js"
+    }
+  }
+</script>
+
+<span id="animateBtn">Animate</span>
+
+<script type="module">
+
+  import * as THREE from 'three';
+  import { OrbitControls } from 'https://unpkg.com/three@0.141.0/examples/jsm/controls/OrbitControls.js';
+
+  THREE.Object3D.prototype.updateMatrix = function () {
+    this.matrix.compose(this.position, this.quaternion, this.scale);
+    var pivot = this.pivot;
+    if (pivot != null) {
+      var px = pivot.x, py = pivot.y, pz = pivot.z;
+      var te = this.matrix.elements;
+
+      te[12] += px - te[0] * px - te[4] * py - te[8] * pz;
+      te[13] += py - te[1] * px - te[5] * py - te[9] * pz;
+      te[14] += pz - te[2] * px - te[6] * py - te[10] * pz;
+    }
+    this.matrixWorldNeedsUpdate = true;
+  };
+
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer();
+  renderer.setSize(width, height);
+  document.body.appendChild(renderer.domElement);
+
+  const rectW = 1.4;
+  const rectH = 1.8;
+
+  // center rect
+  const centerRect = addRect(rectW, rectH, 0, 0, 0, 0xc5a15e);
+  scene.add(centerRect);
+
+  // right rect
+  const rightRect = addRect(rectW, rectH, rectW, 0, 0, 0x806c51);
+  rightRect.pivot = new THREE.Vector3(-rectW / 2, 0, 0)
+  scene.add(rightRect);
+
+  const right2xRect = addRect(rectW, rectH, 2 * rectW, 0, 0, 0xc5a15e);
+  right2xRect.pivot = new THREE.Vector3(-rectW / 2, 0, 0)
+  scene.add(right2xRect);
+
+  const right3xRect = addRect(rectW / 20, rectH, 2 * rectW + rectW / 2 + rectW / 40 - 0.01, 0, 0, 0xffffff);
+  right3xRect.pivot = new THREE.Vector3(-rectW / 40, 0, 0)
+  scene.add(right3xRect);
+
+  var rightgroup = new THREE.Group()
+  rightgroup.pivot = new THREE.Vector3(rectW * 3 / 2, 0, 0)
+  rightgroup.add(right2xRect);
+  rightgroup.add(right3xRect);
+  scene.add(rightgroup)
+
+  var rightgroup2 = new THREE.Group()
+  rightgroup2.pivot = new THREE.Vector3(rectW / 2, 0, 0)
+  rightgroup2.add(rightgroup);
+  rightgroup2.add(rightRect);
+  scene.add(rightgroup2)
+
+
+  /* LEFT SIDE */
+  const leftRect = addRect(rectW, rectH, -rectW, 0, 0, 0x806c51);
+  leftRect.pivot = new THREE.Vector3(rectW / 2, 0, 0)
+  scene.add(leftRect);
+
+
+  /* TOP SIDE */
+  const topRect = addRect(rectW, rectW, 0, rectH / 2 + rectW / 2, 0, 0xc5a15e);
+  topRect.pivot = new THREE.Vector3(0, -rectW / 2, 0)
+  scene.add(topRect);
+
+  const top2xRect = addRect(rectW, rectW / 20, 0, rectW / 40 + rectH / 2 + rectW - 0.01, 0, 0xffffff);
+  top2xRect.pivot = new THREE.Vector3(0, -rectW / 40, 0)
+  scene.add(top2xRect);
+
+  var topGroup = new THREE.Group()
+  topGroup.pivot = new THREE.Vector3(0, rectH / 2, 0)
+  topGroup.add(topRect);
+  topGroup.add(top2xRect);
+  scene.add(topGroup)
+
+
+  /* BOTTOM SIDE */
+  const bottomRect = addRect(rectW, rectW, 0, -(rectH / 2 + rectW / 2), 0, 0xc5a15e);
+  bottomRect.pivot = new THREE.Vector3(0, rectW / 2, 0)
+  scene.add(bottomRect);
+
+  const bottom2xRect = addRect(rectW, rectW / 20, 0, -(rectW / 40 + rectH / 2 + rectW - 0.01), 0, 0xffffff);
+  bottom2xRect.pivot = new THREE.Vector3(0, rectW / 40, 0)
+  scene.add(bottom2xRect);
+
+  var bottomGroup = new THREE.Group()
+  bottomGroup.pivot = new THREE.Vector3(0, -rectH / 2, 0)
+  bottomGroup.add(bottomRect);
+  bottomGroup.add(bottom2xRect);
+  scene.add(bottomGroup)
+
+
+  camera.position.z = 5;
+
+  const controls = new OrbitControls(camera, renderer.domElement)
+
+  function animate() {
+    requestAnimationFrame(animate)
+
+    renderer.render(scene, camera)
+  }
+  animate()
+
+
+  function addRect(w, h, x, y, rotateDeg, color) {
+    const geometry = new THREE.PlaneGeometry(w, h);
+    const material = new THREE.MeshBasicMaterial({
+      color: color,
+      side: THREE.DoubleSide
+    })
+    const rect = new THREE.Mesh(geometry, material)
+    rect.rotation.x = rotateDeg;
+    rect.position.x = x;
+    rect.position.y = y;
+    return rect;
+  }
+
+  var reqAnimFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.msRequestAnimationFrame;
+
+  const rightRectRotation = -Math.PI / 2
+  const leftRectRotation = Math.PI / 2
+
+  function render() {
+    reqAnimFrame(render);
+
+    // rotate right box
+    if (leftRect.rotation.y.toFixed(1) !== leftRectRotation.toFixed(1)) {
+      leftRect.rotation.y += 0.1
+    } else {
+      leftRect.rotation.y = leftRectRotation
+      if (topGroup.rotation.x.toFixed(1) !== leftRectRotation.toFixed(1)) {
+        topGroup.rotation.x += 0.1
+      } else {
+        topGroup.rotation.x = leftRectRotation
+        if (top2xRect.rotation.x.toFixed(1) !== leftRectRotation.toFixed(1)) {
+          top2xRect.rotation.x += 0.1
+        } else {
+          top2xRect.rotation.x = leftRectRotation
+          if (bottomGroup.rotation.x.toFixed(1) !== rightRectRotation.toFixed(1)) {
+            bottomGroup.rotation.x -= 0.1
+          } else {
+            bottomGroup.rotation.x = rightRectRotation
+            if (bottom2xRect.rotation.x.toFixed(1) !== rightRectRotation.toFixed(1)) {
+              bottom2xRect.rotation.x -= 0.1
+            } else {
+              bottom2xRect.rotation.x = rightRectRotation
+              if (rightgroup2.rotation.y.toFixed(1) !== rightRectRotation.toFixed(1)) {
+                rightgroup2.rotation.y -= 0.1
+              } else {
+                rightgroup2.rotation.y = rightRectRotation
+                if (right3xRect.rotation.y.toFixed(1) !== rightRectRotation.toFixed(1)) {
+                  right3xRect.rotation.y -= 0.1
+                } else {
+                  right3xRect.rotation.y = rightRectRotation
+                  if (rightgroup.rotation.y.toFixed(1) !== rightRectRotation.toFixed(1)) {
+                    rightgroup.rotation.y -= 0.1
+                  } else {
+                    rightgroup.rotation.y = rightRectRotation
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    /*if (right3xRect.rotation.y.toFixed(1) !== rightRectRotation.toFixed(1)) {
+      right3xRect.rotation.y -= 0.01
+    } else {
+      
+    }*/
+
+
+    renderer.render(scene, camera);
+  };
+
+  document.getElementById('animateBtn').onclick = () => {
+    render();
+
+  }
+</script>

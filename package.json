@@ -1,0 +1,15 @@
+{
+  "name": "carton",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "budo index.js --open"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "three": "^0.141.0",
+    "three-orbitcontrols": "^2.110.3"
+  }
+}
